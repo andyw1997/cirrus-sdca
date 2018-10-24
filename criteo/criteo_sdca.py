@@ -33,10 +33,20 @@ def hash_data(data):
             vals.append(1)
     return csr_matrix((vals, (rows, cols)), shape = (len(data), D))
 
+# log loss function for loss of prediction values
+def logloss(predictions, y):
+    total = 0.0
+    for i, yi in enumerate(y):
+        p = max(min(predictions[i], 1. - 10e-12), 10e-12)
+        total -= log(p) if yi == 1. else log(1. - p)
+    return total / len(y)
+
+
 prev_time = time.time()
 y = []
 X = []
 i = 1
+# read in data, using every 250th datapoint to use a smaller dataset
 for row in DictReader(open(train), fieldnames = column_names, delimiter='\t'):
     if i % 250 == 0:
         y.append(1. if row['Label'] == '1' else 0.)
@@ -49,6 +59,7 @@ curr_time = time.time() - prev_time
 print('time for read data step = %s seconds' % curr_time)
 prev_time = time.time()
 
+# hash trick on data
 y = np.array(y)
 X = hash_data(X)
 
@@ -64,16 +75,11 @@ sdca = SDCA('log')
 epochs = []
 loss = []
 
-def logloss(predictions, y):
-    total = 0.0
-    for i, yi in enumerate(y):
-        p = max(min(predictions[i], 1. - 10e-12), 10e-12)
-        total -= log(p) if yi == 1. else log(1. - p)
-    return total / len(y)
-
 train_start = time.time()
 prev_time = train_start
 times = []
+
+# run SDCA training for some number of epochs
 for i in range(1,11):
     w, a_0 = sdca.train(X, y, a_0, epochs_per_data, lamb = lamb)
 

@@ -1,1 +1,3 @@
 This uses sparse SDCA on the Criteo Dataset. The dataset must be downloaded into this folder.
+
+Run criteo_sdca.py to use it.
