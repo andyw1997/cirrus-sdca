@@ -45,13 +45,21 @@ def logloss(predictions, y):
 prev_time = time.time()
 y = []
 X = []
+y_test = []
+X_test = []
 i = 1
+
 # read in data, using every 250th datapoint to use a smaller dataset
 for row in DictReader(open(train), fieldnames = column_names, delimiter='\t'):
-    if i % 250 == 0:
+    if i % 100 == 0:
         y.append(1. if row['Label'] == '1' else 0.)
         del row['Label']
         X.append(row)
+    if (i+1) % 300 == 0:
+        y_test.append(1. if row['Label'] == '1' else 0.)
+        del row['Label']
+        X_test.append(row)
+
     i += 1
 
 print('training data finished reading')
@@ -62,6 +70,8 @@ prev_time = time.time()
 # hash trick on data
 y = np.array(y)
 X = hash_data(X)
+y_test = np.array(y_test)
+X_test = hash_data(X_test)
 
 print('data finished hashing')
 curr_time = time.time() - prev_time
@@ -74,6 +84,7 @@ epochs_per_data = 1
 sdca = SDCA('log')
 epochs = []
 loss = []
+loss_test = []
 
 train_start = time.time()
 prev_time = train_start
@@ -94,22 +105,36 @@ for i in range(1,11):
     times.append(since_start)
 
     pvals = sdca.getpvals(X)
-
     loss.append(logloss(pvals, y))
-    print('log loss = ' + str(loss[-1]))
 
-print("final log loss = " + str(loss[-1]))
+    pvals_test = sdca.getpvals(X_test)
+    loss_test.append(logloss(pvals_test, y_test))
+
+    print('training log loss = ' + str(loss[-1]))
+    print('test log loss = ' + str(loss_test[-1]))
 
 plt.figure(1)
 plt.plot(epochs, loss)
 plt.xlabel('num epochs')
 plt.ylabel('log loss')
-plt.title('log loss on criteo vs epochs')
+plt.title('training log loss on criteo vs epochs')
 
 plt.figure(2)
 plt.plot(times, loss)
 plt.xlabel('time since training start')
 plt.ylabel('log loss')
-plt.title('log loss on criteo vs time')
+plt.title('training log loss on criteo vs time')
+
+plt.figure(3)
+plt.plot(epochs, loss_test)
+plt.xlabel('num epochs')
+plt.ylabel('log loss')
+plt.title('test log loss on criteo vs epochs')
+
+plt.figure(4)
+plt.plot(times, loss_test)
+plt.xlabel('time since training start')
+plt.ylabel('log loss')
+plt.title('test log loss on criteo vs time')
 
 plt.show()

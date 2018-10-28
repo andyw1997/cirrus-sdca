@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.sparse.linalg import norm
-from math import exp
 
 class SDCA:
 
@@ -44,7 +43,7 @@ class SDCA:
 
     def getpvals(self, X):
         values = X.dot(self.w)
-        pvals = [self.sigmoid(val[0,0]) for val in values]
+        pvals = [self.sigmoid(val) for val in values]
         return pvals
 
     def compute_updates(self, x, y, a, epochs, lamb):
@@ -95,7 +94,7 @@ class SDCA:
 
     # Log loss for use in logistic regression. This is a smooth loss function. Recommended by shalev-shwartz
     def compute_alpha_gradient_log(self, a, x, y, w, lamb, n):
-        inside_term = 1.0 + exp(x.dot(w)[0,0] * y)
+        inside_term = 1.0 + np.exp(x.dot(w)[0,0] * y)
         numerator = y / inside_term - a
         denominator = max(1.0, 0.25 + (norm(x) ** 2)/(lamb * n))
         return numerator/denominator
@@ -117,5 +116,5 @@ class SDCA:
     # sigmoid function to convert w.T.dot(x) into a probability for logistic regression
     # unused since the conversion isn't necessary, probably not needed but will leave here in case
     def sigmoid(self, z):
-        probability = 1.0/(1.0 + exp(-1 * z))
+        probability = 1.0/(1.0 + np.exp(-1 * z))
         return probability
