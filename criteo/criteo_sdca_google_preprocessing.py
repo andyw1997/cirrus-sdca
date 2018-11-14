@@ -9,7 +9,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import time
 
-train = '/mnt/efs/criteo_kaggle/train.csv'
+train = 'train.txt'
 
 prev_time = time.time()
 y = []
@@ -26,11 +26,10 @@ test_count = 0
 train_count = 0
 
 # read in data and hash in sparse format
-for idx, row in DictReader(reader(open(train), delimiter=',')):
+for idx, row in enumerate(reader(open(train), delimiter='\t')):
     if idx % 100 == 1: # test point
-        y_test.append(1. if row['Label'] == '1' else 0.)
-        del row['Label']
-        del row['Id']
+        y_test.append(1. if row[0] == '1' else 0.)
+        del row[0]
         
         # append bias term
         rows_test.append(test_count)
@@ -38,72 +37,51 @@ for idx, row in DictReader(reader(open(train), delimiter=',')):
         data_test.append(1)
 
         # read in as sparse format, integerizing
-        # numerical data
-        for i in range(13):
-            index = 'I' + str(i+1)
-            if row[index] == '':
+        for i in range(13 + 26):
+            if row[i] == '':
                 rows_test.append(test_count)
                 cols_test.append(i)
                 data_test.append(-1)
-            else:    
-                val = int(row[index])
+            elif i < 13:
+                val = int(row[i])
                 if val != 0:
                     rows_test.append(test_count)
                     cols_test.append(i)
                     data_test.append(val)
-
-        # categorical data
-        for i in range(26):
-            index = 'C' + str(i+1)
-            if row[index] == '':
-                rows_test.append(test_count)
-                cols_test.append(i + 13)
-                data_test.append(-1)
             else:
                 # categorical, so convert from hex to int
-                val = int(row[index], 16)
+                val = int(row[i], 16)
                 rows_test.append(test_count)
-                cols_test.append(i + 13)
+                cols_test.append(i)
                 data_test.append(val)
 
         test_count += 1
     elif idx % 10 == 0: # normal training point
-        y.append(1. if row['Label'] == '1' else 0.)
-        del row['Label']
-        del row['Id']
-        
+        y.append(1. if row[0] == '1' else 0.)
+        del row[0]
+
         # append bias term
         rows.append(train_count)
         cols.append(13+26)
         data.append(1)
-
+        
         # read in as sparse format, integerizing
-        # numerical data
-        for i in range(13):
-            index = 'I' + str(i+1)
-            if row[index] == '':
-                rows.append(count)
+        for i in range(13 + 26):
+            if row[i] == '':
+                rows.append(train_count)
                 cols.append(i)
                 data.append(-1)
-            else:    
-                val = int(row[index])
+            elif i < 13:
+                val = int(row[i])
                 if val != 0:
-                    rows.append(count)
+                    rows.append(train_count)
                     cols.append(i)
                     data.append(val)
-
-        # categorical data
-        for i in range(26):
-            index = 'C' + str(i+1)
-            if row[index] == '':
-                rows.append(count)
-                cols.append(i + 13)
-                data.append(-1)
             else:
                 # categorical, so convert from hex to int
-                val = int(row[index], 16)
-                rows.append(count)
-                cols.append(i + 13)
+                val = int(row[i], 16)
+                rows.append(train_count)
+                cols.append(i)
                 data.append(val)
 
         train_count += 1
