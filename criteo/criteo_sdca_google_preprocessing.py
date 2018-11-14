@@ -1,5 +1,5 @@
-import mmh3
 from scipy.sparse import csr_matrix
+from sklearn.linear_model import LogisticRegression
 from sdca_sparse import SDCA
 from math import log
 from csv import reader
@@ -9,7 +9,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import time
 
-train = 'train.txt'
+train = '/mnt/efs/criteo_kaggle/train.csv'
 
 prev_time = time.time()
 y = []
@@ -26,10 +26,11 @@ test_count = 0
 train_count = 0
 
 # read in data and hash in sparse format
-for idx, row in enumerate(reader(open(train), delimiter='\t')):
-    if idx % 600 == 1: # test point
-        y_test.append(1. if row[0] == '1' else 0.)
-        del row[0]
+for idx, row in DictReader(reader(open(train), delimiter=',')):
+    if idx % 100 == 1: # test point
+        y_test.append(1. if row['Label'] == '1' else 0.)
+        del row['Label']
+        del row['Id']
         
         # append bias term
         rows_test.append(test_count)
@@ -37,51 +38,72 @@ for idx, row in enumerate(reader(open(train), delimiter='\t')):
         data_test.append(1)
 
         # read in as sparse format, integerizing
-        for i in range(13 + 26):
-            if row[i] == '':
+        # numerical data
+        for i in range(13):
+            index = 'I' + str(i+1)
+            if row[index] == '':
                 rows_test.append(test_count)
                 cols_test.append(i)
                 data_test.append(-1)
-            elif i < 13:
-                val = int(row[i])
+            else:    
+                val = int(row[index])
                 if val != 0:
                     rows_test.append(test_count)
                     cols_test.append(i)
                     data_test.append(val)
+
+        # categorical data
+        for i in range(26):
+            index = 'C' + str(i+1)
+            if row[index] == '':
+                rows_test.append(test_count)
+                cols_test.append(i + 13)
+                data_test.append(-1)
             else:
                 # categorical, so convert from hex to int
-                val = int(row[i], 16)
+                val = int(row[index], 16)
                 rows_test.append(test_count)
-                cols_test.append(i)
+                cols_test.append(i + 13)
                 data_test.append(val)
 
         test_count += 1
-    elif idx % 200 == 0: # normal training point
-        y.append(1. if row[0] == '1' else 0.)
-        del row[0]
-
+    elif idx % 10 == 0: # normal training point
+        y.append(1. if row['Label'] == '1' else 0.)
+        del row['Label']
+        del row['Id']
+        
         # append bias term
         rows.append(train_count)
         cols.append(13+26)
         data.append(1)
-        
+
         # read in as sparse format, integerizing
-        for i in range(13 + 26):
-            if row[i] == '':
-                rows.append(train_count)
+        # numerical data
+        for i in range(13):
+            index = 'I' + str(i+1)
+            if row[index] == '':
+                rows.append(count)
                 cols.append(i)
                 data.append(-1)
-            elif i < 13:
-                val = int(row[i])
+            else:    
+                val = int(row[index])
                 if val != 0:
-                    rows.append(train_count)
+                    rows.append(count)
                     cols.append(i)
                     data.append(val)
+
+        # categorical data
+        for i in range(26):
+            index = 'C' + str(i+1)
+            if row[index] == '':
+                rows.append(count)
+                cols.append(i + 13)
+                data.append(-1)
             else:
                 # categorical, so convert from hex to int
-                val = int(row[i], 16)
-                rows.append(train_count)
-                cols.append(i)
+                val = int(row[index], 16)
+                rows.append(count)
+                cols.append(i + 13)
                 data.append(val)
 
         train_count += 1
@@ -194,6 +216,11 @@ print('time for preprocess data step = %s seconds' % curr_time)
 prev_time = time.time()
 print()
 
+# Get sklearn's value
+lr = LogisticRegression().fit(X,y)
+
+print('sklearn log loss = ' + str(lr.score(X_test,y_test)))
+
 # Start training step
 
 a_0 = np.array([0.0 for i in y])
@@ -270,3 +297,5 @@ plt.ylabel('log loss')
 plt.title('test log loss on criteo vs time')
 plt.savefig('test_loss_time.png',dpi=300)
 plt.close(fig)
+
+# TODO: sklearn
