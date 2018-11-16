@@ -1,5 +1,6 @@
 import mmh3
 from scipy.sparse import csr_matrix
+from sklearn.linear_model import LogisticRegression
 from sdca_sparse import SDCA
 from math import log
 from csv import DictReader
@@ -11,7 +12,13 @@ import time
 
 D = 2**20
 HASH_SEED = 21
-train = '/mnt/efs/criteo_kaggle/train.csv'
+train = '../../datasets/criteo/train.txt'
+
+columns = ['Label']
+for i in range (1,14):
+    columns.append('I'+str(i))
+for i in range (1,27):
+    columns.append('C'+str(i))
 
 # log loss function for loss of prediction values
 def logloss(predictions, y):
@@ -37,30 +44,28 @@ test_count = 0
 train_count = 0
 
 # read in data and hash
-for idx, row in enumerate(DictReader(open(train), delimiter=',')):
-    if idx % 10 == 1: # test point
+for idx, row in enumerate(DictReader(open(train), delimiter='\t', fieldnames=columns)):
+    if idx % 100 == 1: # test point
         y_test.append(1. if row['Label'] == '1' else 0.)
         del row['Label']
-        del row['Id']
         rows_test.append(test_count)
         cols_test.append(0)
         vals_test.append(0)
         for col, val in row.items():
-            hash_val = mmh3.hash(col[1:] + str(val), HASH_SEED, signed=False)
+            hash_val = mmh3.hash(col + str(val), HASH_SEED, signed=False)
             bucket = hash_val % D
             rows_test.append(test_count)
             cols_test.append(bucket)
             vals_test.append(1)
         test_count += 1
-    else: # normal training point
+    elif idx % 10 == 0: # normal training point
         y.append(1. if row['Label'] == '1' else 0.)
         del row['Label']
-        del row['Id']
         rows.append(train_count)
         cols.append(0)
         vals.append(0)
         for col, val in row.items():
-            hash_val = mmh3.hash(col[1:] + str(val), HASH_SEED, signed=False)
+            hash_val = mmh3.hash(col + str(val), HASH_SEED, signed=False)
             bucket = hash_val % D
             rows.append(train_count)
             cols.append(bucket)
@@ -88,6 +93,14 @@ cols = None
 print('data finished hashing')
 curr_time = time.time() - prev_time
 print('time for hash step = %s seconds' % curr_time)
+
+#### TEMP
+
+lr = LogisticRegression(solver = 'liblinear').fit(X,y)
+
+print('sklearn log loss = ' + str(logloss(lr.predict_proba(X_test)[:,1].T,y_test)))
+
+####
 
 a_0 = np.array([0.0 for i in y])
 lamb = 0.00001
