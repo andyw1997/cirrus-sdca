@@ -127,7 +127,7 @@ print('time for counting = %s seconds' % curr_time)
 print()
 
 buckets = [
-    0.49, 0.99, 1.74, 2.865, 4.5525, 7.08375, 10.880625, 16.5759375,
+    0.0, 0.49, 0.99, 1.74, 2.865, 4.5525, 7.08375, 10.880625, 16.5759375,
     25.11890625, 37.933359375, 57.1550390625, 85.98755859375, 129.236337890625,
     194.1095068359375, 291.41926025390626, 437.3838903808594, 656.3308355712891,
     984.7512533569336, 1477.3818800354004, 2216.3278200531004, 3324.7467300796507,
@@ -205,7 +205,7 @@ print('')
 # Get sklearn's value
 lr = LogisticRegression(solver = 'liblinear').fit(X,y)
 
-print('sklearn log loss = ' + str(logloss(lr.predict_proba(X_test)[:,1].T, y_test)))
+print('sklearn log loss = ' + str(logloss(lr.predict_proba(X_test)[:,1].T,y_test)))
 
 print('data finished sklearn lr')
 curr_time = time.time() - prev_time
