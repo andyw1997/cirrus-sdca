@@ -35,7 +35,7 @@ def logloss(predictions, y):
 
 # read in data and hash in sparse format
 for idx, row in enumerate(reader(open(train), delimiter='\t')):
-    if idx % 100 == 1: # test point
+    if idx % 1000 == 1: # test point
         y_test.append(1. if row[0] == '1' else 0.)
         del row[0]
         
@@ -64,7 +64,7 @@ for idx, row in enumerate(reader(open(train), delimiter='\t')):
                 data_test.append(val)
 
         test_count += 1
-    elif idx % 10 == 0: # normal training point
+    elif idx % 100 == 0: # normal training point
         y.append(1. if row[0] == '1' else 0.)
         del row[0]
 
@@ -215,7 +215,7 @@ print('')
 
 # Start training step
 
-a_0 = np.array([0.0 for i in y])
+a_0 = csr_matrix([0.0 for i in y])
 lamb = 0.00001
 
 epochs_per_data = 1
@@ -227,7 +227,6 @@ loss_test = []
 train_start = time.time()
 prev_time = train_start
 times = []
-
 
 # run SDCA training for some number of epochs
 for i in range(1,21):
@@ -256,7 +255,7 @@ plt.plot(epochs, loss)
 plt.xlabel('num epochs')
 plt.ylabel('log loss')
 plt.title('training log loss on criteo vs epochs')
-plt.savefig('training_loss_epochs.png',dpi=300)
+plt.savefig('results/training_loss_epochs.png',dpi=300)
 plt.close(fig)
 
 fig = plt.figure(2)
@@ -264,7 +263,7 @@ plt.plot(times, loss)
 plt.xlabel('time since training start')
 plt.ylabel('log loss')
 plt.title('training log loss on criteo vs time')
-plt.savefig('training_loss_time.png',dpi=300)
+plt.savefig('results/training_loss_time.png',dpi=300)
 plt.close(fig)
 
 fig = plt.figure(3)
@@ -272,7 +271,7 @@ plt.plot(epochs, loss_test)
 plt.xlabel('num epochs')
 plt.ylabel('log loss')
 plt.title('test log loss on criteo vs epochs')
-plt.savefig('test_loss_epochs.png',dpi=300)
+plt.savefig('results/test_loss_epochs.png',dpi=300)
 plt.close(fig)
 
 fig = plt.figure(4)
@@ -280,7 +279,7 @@ plt.plot(times, loss_test)
 plt.xlabel('time since training start')
 plt.ylabel('log loss')
 plt.title('test log loss on criteo vs time')
-plt.savefig('test_loss_time.png',dpi=300)
+plt.savefig('results/test_loss_time.png',dpi=300)
 plt.close(fig)
 
 # TODO: sklearn
