@@ -1,4 +1,6 @@
 *train.txt
 *test.txt
 *pycache*
-./results*
+*results*
+*.idea*
+*cmake-build-debug*

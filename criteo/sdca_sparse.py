@@ -57,28 +57,26 @@ class SDCA:
         alpha = a
         omega = w_0
 
-        # perm = np.array([np.arange(len(a))]).T
+        perm = np.arange(len_a)
 
         # iterate and update, using epochs of random data permutations
         for k in range(epochs):
-            # np.random.shuffle(perm)
-
-            # if k % 5 == 0:
-            #     print(omega)
+            np.random.shuffle(perm)
 
             for i in range(len_a):
-                alpha, omega = self.compute_update(i, x, y, alpha, omega, lamb) # temporarily substitue i for int(perm[i])
+                alpha, omega = self.compute_update(int(perm[i]), x, y, alpha, omega, lamb)
 
         return (alpha, omega)
 
     def compute_update(self, i, x, y, a, w, lamb):
         n = float(a.shape[1])
+        xrow = x.getrow(i)
         # compute gradient at point
-        a_grad = self.compute_alpha_gradient(a[0,i], x.getrow(i), y[i], w, lamb, n)
+        a_grad = self.compute_alpha_gradient(a[0,i], xrow, y[i], w, lamb, n)
 
         # use gradient to adjust the alpha and omega values
         a[0,i] += a_grad
-        w += x.getrow(i).multiply(a_grad / (lamb * n))
+        w += xrow.multiply(a_grad / (lamb * n))
         return a, w
 
     # Log loss for use in logistic regression. This is a smooth loss function. Recommended by shalev-shwartz
@@ -91,7 +89,7 @@ class SDCA:
     # Smooth hinge loss gradient closed form solution from pg 578 of shalev-shwartz paper.
     def compute_alpha_gradient_smooth_hinge(self, a, x, y, w, lamb, n, gamma=1.0):
         numerator = 1.0 - y * x.multiply(w).sum() - gamma * a * y
-        denominator = (norm(x)**2)/(lamb * n) + gamma #lamb*n in the denom
+        denominator = (norm(x)**2)/(lamb * n) + gamma
         value = numerator/denominator + a*y
         return y * max(0.0, min(1.0, value)) - a
 
@@ -105,5 +103,5 @@ class SDCA:
     # sigmoid function to convert w.T.dot(x) into a probability for logistic regression
     # unused since the conversion isn't necessary, probably not needed but will leave here in case
     def sigmoid(self, z):
-        probability = 1.0/(1.0 + math.exp(-1 * z[0,0]))
+        probability = 1.0/(1.0 + math.exp(-1 * z))
         return probability

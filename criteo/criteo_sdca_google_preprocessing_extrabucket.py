@@ -35,6 +35,8 @@ def logloss(predictions, y):
 
 # read in data and hash in sparse format
 for idx, row in enumerate(reader(open(train), delimiter='\t')):
+    if idx > 100000:
+        break
     if idx % 1000 == 1: # test point
         y_test.append(1. if row[0] == '1' else 0.)
         del row[0]
