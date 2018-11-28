@@ -127,7 +127,7 @@ print('time for counting = %s seconds' % curr_time)
 print()
 
 buckets = [
-    0.49, 0.99, 1.74, 2.865, 4.5525, 7.08375, 10.880625, 16.5759375,
+    0.0, 0.49, 0.99, 1.74, 2.865, 4.5525, 7.08375, 10.880625, 16.5759375,
     25.11890625, 37.933359375, 57.1550390625, 85.98755859375, 129.236337890625,
     194.1095068359375, 291.41926025390626, 437.3838903808594, 656.3308355712891,
     984.7512533569336, 1477.3818800354004, 2216.3278200531004, 3324.7467300796507,
@@ -205,7 +205,7 @@ print('')
 # Get sklearn's value
 lr = LogisticRegression(solver = 'liblinear').fit(X,y)
 
-print('sklearn log loss = ' + str(logloss(lr.predict_proba(X_test)[:,1].T, y_test)))
+print('sklearn log loss = ' + str(logloss(lr.predict_proba(X_test)[:,1].T,y_test)))
 
 print('data finished sklearn lr')
 curr_time = time.time() - prev_time
@@ -215,7 +215,7 @@ print('')
 
 # Start training step
 
-a_0 = np.array([0.0 for i in y])
+a_0 = csr_matrix([0.0 for i in y])
 lamb = 0.00001
 
 epochs_per_data = 1
@@ -227,7 +227,6 @@ loss_test = []
 train_start = time.time()
 prev_time = train_start
 times = []
-
 
 # run SDCA training for some number of epochs
 for i in range(1,21):
@@ -256,7 +255,7 @@ plt.plot(epochs, loss)
 plt.xlabel('num epochs')
 plt.ylabel('log loss')
 plt.title('training log loss on criteo vs epochs')
-plt.savefig('training_loss_epochs.png',dpi=300)
+plt.savefig('results/training_loss_epochs.png',dpi=300)
 plt.close(fig)
 
 fig = plt.figure(2)
@@ -264,7 +263,7 @@ plt.plot(times, loss)
 plt.xlabel('time since training start')
 plt.ylabel('log loss')
 plt.title('training log loss on criteo vs time')
-plt.savefig('training_loss_time.png',dpi=300)
+plt.savefig('results/training_loss_time.png',dpi=300)
 plt.close(fig)
 
 fig = plt.figure(3)
@@ -272,7 +271,7 @@ plt.plot(epochs, loss_test)
 plt.xlabel('num epochs')
 plt.ylabel('log loss')
 plt.title('test log loss on criteo vs epochs')
-plt.savefig('test_loss_epochs.png',dpi=300)
+plt.savefig('results/test_loss_epochs.png',dpi=300)
 plt.close(fig)
 
 fig = plt.figure(4)
@@ -280,7 +279,7 @@ plt.plot(times, loss_test)
 plt.xlabel('time since training start')
 plt.ylabel('log loss')
 plt.title('test log loss on criteo vs time')
-plt.savefig('test_loss_time.png',dpi=300)
+plt.savefig('results/test_loss_time.png',dpi=300)
 plt.close(fig)
 
 # TODO: sklearn
