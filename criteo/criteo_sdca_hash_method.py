@@ -3,7 +3,7 @@ from scipy.sparse import csr_matrix
 from sklearn.linear_model import LogisticRegression
 from sdca_sparse import SDCA
 from math import log
-from csv import DictReader
+from csv import reader
 import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
@@ -12,7 +12,7 @@ import time
 
 D = 2**20
 HASH_SEED = 21
-train = '../../datasets/criteo/train.txt'
+train = 'train.txt'
 
 columns = ['Label']
 for i in range (1,14):
@@ -44,28 +44,28 @@ test_count = 0
 train_count = 0
 
 # read in data and hash
-for idx, row in enumerate(DictReader(open(train), delimiter='\t', fieldnames=columns)):
+for idx, row in enumerate(reader(open(train), delimiter='\t')):
     if idx % 100 == 1: # test point
-        y_test.append(1. if row['Label'] == '1' else 0.)
-        del row['Label']
+        y_test.append(1. if row[0] == '1' else 0.)
+        del row[0]
         rows_test.append(test_count)
         cols_test.append(0)
         vals_test.append(0)
-        for col, val in row.items():
-            hash_val = mmh3.hash(col + str(val), HASH_SEED, signed=False)
+        for col, val in enumerate(row):
+            hash_val = mmh3.hash(str(col) + str(val), HASH_SEED, signed=False)
             bucket = hash_val % D
             rows_test.append(test_count)
             cols_test.append(bucket)
             vals_test.append(1)
         test_count += 1
     elif idx % 10 == 0: # normal training point
-        y.append(1. if row['Label'] == '1' else 0.)
-        del row['Label']
+        y.append(1. if row[0] == '1' else 0.)
+        del row[0]
         rows.append(train_count)
         cols.append(0)
         vals.append(0)
-        for col, val in row.items():
-            hash_val = mmh3.hash(col + str(val), HASH_SEED, signed=False)
+        for col, val in enumerate(row):
+            hash_val = mmh3.hash(str(col) + str(val), HASH_SEED, signed=False)
             bucket = hash_val % D
             rows.append(train_count)
             cols.append(bucket)
