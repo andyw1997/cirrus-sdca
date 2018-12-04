@@ -1,0 +1,72 @@
+dist: trusty
+sudo: required
+
+language: cpp
+compiler: g++
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-7
+      - g++-7
+      - cmake
+
+notifications:
+ email:
+  on_success: never
+  on_failure: always
+
+script:
+   - export CC=/usr/bin/gcc-7
+   - export CXX=/usr/bin/g++-7
+   - gcc --version
+   - g++ --version
+   - make -j 10
+   - for i in "./tests/test_travis_lr/test.sh & sleep 1" "./tests/test_travis_lr/error"; do eval ${i}; done
+   - ./tests/test_data/jester.sh
+   - for i in "./tests/test_travis_mf/test.sh & sleep 1" "./tests/test_travis_mf/error"; do eval ${i}; done
+   - ./tests/test_travis/test_register.sh
+   - ./tests/test_travis/test_keyvalue.sh
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "EAFRlHmQdmzji/38r+SSZjqXNULcFo84gIuaBvmwdj8B9a6rYHTg5dXeUCwrO6okBHEvODhCbZw5KqNaRVHPTqNYNtGxBnv7fk7VJVoZ6Zb5nnjaI32bQr1f0+qW8Q/u9McnP9B5kap7WiXj0Wjn6t9Ps946lcABwL/aBfrmuzC+vb5m1571OfIbT/D/U37o6UXSUDMQpja3cti5np4BzYKb8j7v0NN5gSa48TXAUezlRQ/tJ9ljFG8S4wxWAQtOt/nAxRqMN5pknlQT57H4lcX6nBHEiQTTaQOayAA868+RePcjbW9H0afbwmGbL4efdsVcjEAXd+3onl76FMCyKBN3SBypp1gRINWZFd5ofD9t1okVRjkeSySM6W63+vsfM3vLHBpNRbAHOXE0P7O4c4oDUO9MJmPpzXGftV6UuT7bFvWfmJpLuixrdR3aTC96jhy7hOysVYejEnksjrljGhLkJ1a7SH4aE4o2zdUHWxoEIs8VMsIcTSCuZblsG8CUzyHeqeYS7AijwicOvHMZJd9noXuC6KYWAddmqNDg0fvB2SpWPqEuWvuH/slpqEAZ2p907ljqN+ao4X7cAqCOJDwuXbc4/AaVD/Dt1tmhMQL9bVxNb/YfTJU9nWH8wzx7t1G4Gb46vRzr3++CimOhtNTVgpx2IeLm9CQLCRcM5MA="
+
+before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+
+install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq -y
+  - sudo apt-get install -qq -y g++-7
+  - sudo apt-get install -qq -y clang-format-3.8 
+  - sudo apt-get install -y libstdc++6
+  - export CXX=/usr/bin/g++-7
+  - export CC=/usr/bin/gcc-7
+  - sudo ln -s -f /usr/bin/gcc-7 /usr/local/bin/gcc
+  - sudo ln -s -f /usr/bin/g++-7 /usr/local/bin/g++
+  - mv src/Makefile.am src/Makefile_centos.am
+  - mv src/Makefile_ubuntu.am src/Makefile.am
+  - .travis/check-git-clang-format-output.sh  
+  - ./bootstrap.sh
+  - gcc --version
+  - g++ --version
+  - which gcc
+  - which g++
+  - which g++-7
+  - g++-7 --version
+
+addons:
+  coverity_scan:
+    project:
+      name: "jcarreira/cirrus"
+      description: "Build submitted via Travis CI"
+    notification_email: joao@berkeley.edu
+    build_command_prepend: "./bootstrap.sh; make clean"
+    build_command:   "make -j 8"
+    branch_pattern: coverity_scan
