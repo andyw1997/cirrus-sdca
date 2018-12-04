@@ -1,0 +1,3 @@
+[submodule "cpp/cirrus"]
+	path = cpp/cirrus
+	url = https://github.com/jcarreira/cirrus.git
